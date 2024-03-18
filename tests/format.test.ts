@@ -209,6 +209,24 @@ let glimmer: TestEntry[] = [
   ],
 ]
 
+const htmlErb: TestEntry[] = [
+  ['<div class="sm:p-0 p-0"></div>', '<div class="p-0 sm:p-0"></div>'],
+  ['<%= tag class: "sm:p-0 p-0" %>', '<%= tag class: "p-0 sm:p-0" %>'],
+  ["<%= tag class: 'sm:p-0 p-0' %>", "<%= tag class: 'p-0 sm:p-0' %>"],
+  [
+    '<div class="sm:p-0 p-0 <%= "m-2" %>"></div>',
+    '<div class="p-0 sm:p-0 <%= "m-2" %>"></div>',
+  ],
+  [
+    '<%= tag class: "sm:p-0 p-0 #{"m-1"}" %>',
+    '<%= tag class: "p-0 sm:p-0 #{"m-1"}" %>',
+  ],
+  [
+    '<%= tag class: "sm:p-0 p-0 bg-[#FFF]" %>',
+    '<%= tag class: "bg-[#FFF] p-0 sm:p-0" %>',
+  ],
+]
+
 let tests: Record<string, TestEntry[]> = {
   html,
   glimmer,
@@ -261,6 +279,7 @@ let tests: Record<string, TestEntry[]> = {
   'babel-flow': javascript,
   acorn: javascript,
   meriyah: javascript,
+  'html-erb': htmlErb,
   mdx: javascript
     .filter((test) => {
       return !/^\/\*/.test(test[0]) && !/^\/\*/.test(test[1])
