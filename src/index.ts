@@ -16,6 +16,7 @@ import * as recast from 'recast'
 import { getTailwindConfig } from './config.js'
 import { getCustomizations } from './options.js'
 import { loadPlugins } from './plugins.js'
+import * as htmlErb from './plugins/html-erb.js'
 import { sortClasses, sortClassList } from './sorting.js'
 import type {
   Customizations,
@@ -1075,6 +1076,23 @@ function transformSvelte(ast: any, { env, changes }: TransformerContext) {
   }
 }
 
+function transformHtmlErb(ast: any, { env }: any) {
+  ast.text = ast.text.replace(
+    /\bclass="([^"]+?)( ?<|")/g,
+    function (_fullMatch: any, classes: any, ending: any) {
+      const sortedClasses = sortClasses(classes, { env })
+      return `class="${sortedClasses}${ending}`
+    },
+  )
+  ast.text = ast.text.replace(
+    /\bclass:\s+(["'])([^"]+?)( ?#\{|["'])/g,
+    function (_fullMatch: any, beginning: any, classes: any, ending: any) {
+      const sortedClasses = sortClasses(classes, { env })
+      return `class: ${beginning}${sortedClasses}${ending}`
+    },
+  )
+}
+
 export { options } from './options.js'
 
 export const printers: Record<string, Printer> = (function () {
@@ -1124,14 +1142,18 @@ export const printers: Record<string, Printer> = (function () {
       },
     }
   }
+  printers['html-erb-text'] = base.printers['html-erb-text']
 
   return printers
 })()
+
+export const languages = [...htmlErb.languages]
 
 export const parsers: Record<string, Parser> = {
   html: createParser('html', transformHtml, {
     staticAttrs: ['class'],
   }),
+  'html-erb': createParser('html-erb', transformHtmlErb, {}),
   glimmer: createParser('glimmer', transformGlimmer, {
     staticAttrs: ['class'],
   }),
