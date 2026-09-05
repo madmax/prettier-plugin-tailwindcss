@@ -1046,6 +1046,25 @@ function getSvelteNodes(value: any) {
   return []
 }
 
+type HtmlErbNode = { text: string }
+
+function transformHtmlErb(ast: HtmlErbNode, env: TransformerEnv) {
+  ast.text = ast.text.replace(
+    /\bclass="([^"]+?)( ?<|")/g,
+    function (_fullMatch: string, classes: string, ending: string) {
+      let sortedClasses = sortClasses(classes, { env })
+      return `class="${sortedClasses}${ending}`
+    },
+  )
+  ast.text = ast.text.replace(
+    /\bclass:\s+(["'])([^"]+?)( ?#\{|["'])/g,
+    function (_fullMatch: string, beginning: string, classes: string, ending: string) {
+      let sortedClasses = sortClasses(classes, { env })
+      return `class: ${beginning}${sortedClasses}${ending}`
+    },
+  )
+}
+
 export { options } from './options.js'
 
 type HtmlNode =
@@ -1335,6 +1354,25 @@ let liquid = defineTransform<LiquidNode>({
   transform: transformLiquid,
 })
 
+let htmlErb = defineTransform<HtmlErbNode>({
+  load: [
+    {
+      name: 'html-erb',
+      importer: () => import('./plugins/html-erb.js'),
+    },
+  ],
+
+  parsers: {
+    'html-erb': {},
+  },
+
+  printers: {
+    'html-erb-text': {},
+  },
+
+  transform: transformHtmlErb,
+})
+
 export const { parsers, printers } = createPlugin([
   //
   html,
@@ -1347,7 +1385,10 @@ export const { parsers, printers } = createPlugin([
   twig,
   pug,
   liquid,
+  htmlErb,
 ])
+
+export { languages } from './plugins/html-erb.js'
 
 export interface PluginOptions {
   /**

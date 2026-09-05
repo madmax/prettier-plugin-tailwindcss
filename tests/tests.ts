@@ -214,6 +214,15 @@ let glimmer: TestEntry[] = [
   ],
 ]
 
+let htmlErb: TestEntry[] = [
+  ['<div class="sm:p-0 p-0"></div>', '<div class="p-0 sm:p-0"></div>'],
+  ['<%= tag class: "sm:p-0 p-0" %>', '<%= tag class: "p-0 sm:p-0" %>'],
+  ["<%= tag class: 'sm:p-0 p-0' %>", "<%= tag class: 'p-0 sm:p-0' %>"],
+  ['<div class="sm:p-0 p-0 <%= "m-2" %>"></div>', '<div class="p-0 sm:p-0 <%= "m-2" %>"></div>'],
+  ['<%= tag class: "sm:p-0 p-0 #{"m-1"}" %>', '<%= tag class: "p-0 sm:p-0 #{"m-1"}" %>'],
+  ['<%= tag class: "sm:p-0 p-0 bg-[#FFF]" %>', '<%= tag class: "bg-[#FFF] p-0 sm:p-0" %>'],
+]
+
 export let tests: Record<string, TestEntry[]> = {
   html,
   glimmer,
@@ -279,6 +288,7 @@ export let tests: Record<string, TestEntry[]> = {
   'babel-flow': javascript,
   acorn: javascript,
   meriyah: javascript,
+  'html-erb': htmlErb,
   mdx: javascript
     .filter((test) => !test[0].startsWith('/*') && !test[1].startsWith('/*'))
     .map((test) => [test[0].replace(/^;/, ''), test[1].replace(/^;/, ''), test[2]]),

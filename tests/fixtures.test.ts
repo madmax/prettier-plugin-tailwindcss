@@ -72,6 +72,11 @@ let fixtures = [
     ext: 'html',
   },
   {
+    name: 'html-erb',
+    dir: 'html-erb',
+    ext: 'html.erb',
+  },
+  {
     name: 'customizations: js/jsx',
     dir: 'custom-jsx',
     ext: 'jsx',
