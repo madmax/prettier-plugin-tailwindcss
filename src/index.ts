@@ -7,6 +7,7 @@ import * as prettierParserBabel from 'prettier/plugins/babel'
 import * as prettierParserCss from 'prettier/plugins/postcss'
 // @ts-ignore
 import { createPlugin } from './create-plugin.js'
+import { transformHtmlErb } from './html-erb.js'
 import type { Matcher } from './options.js'
 import { sortClasses, sortClassList } from './sorting.js'
 import { defineTransform } from './transform.js'
@@ -1047,23 +1048,6 @@ function getSvelteNodes(value: any) {
 }
 
 type HtmlErbNode = { text: string }
-
-function transformHtmlErb(ast: HtmlErbNode, env: TransformerEnv) {
-  ast.text = ast.text.replace(
-    /\bclass="([^"]+?)( ?<|")/g,
-    function (_fullMatch: string, classes: string, ending: string) {
-      let sortedClasses = sortClasses(classes, { env })
-      return `class="${sortedClasses}${ending}`
-    },
-  )
-  ast.text = ast.text.replace(
-    /\bclass:\s+(["'])([^"]+?)( ?#\{|["'])/g,
-    function (_fullMatch: string, beginning: string, classes: string, ending: string) {
-      let sortedClasses = sortClasses(classes, { env })
-      return `class: ${beginning}${sortedClasses}${ending}`
-    },
-  )
-}
 
 export { options } from './options.js'
 

@@ -6,7 +6,12 @@ describe('parsers', async () => {
   for (let parser in tests) {
     test(parser, async ({ expect }) => {
       for (let [input, expected, options] of tests[parser]) {
-        expect(await format(input, { ...options, parser })).toEqual(expected)
+        let result = await format(input, { ...options, parser })
+        expect(result).toEqual(expected)
+
+        if (parser === 'html-erb') {
+          expect(await format(result, { ...options, parser })).toEqual(result)
+        }
       }
     })
   }

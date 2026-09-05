@@ -216,11 +216,161 @@ let glimmer: TestEntry[] = [
 
 let htmlErb: TestEntry[] = [
   ['<div class="sm:p-0 p-0"></div>', '<div class="p-0 sm:p-0"></div>'],
+  ['<div CLASS = "sm:p-0 p-0"></div>', '<div CLASS = "p-0 sm:p-0"></div>'],
+  ["<div class='sm:p-0 p-0'></div>", "<div class='p-0 sm:p-0'></div>"],
+  ['<div class="  sm:p-0   p-0 "></div>', '<div class="p-0 sm:p-0"></div>'],
+  ['<div class="sm:p-0 p-0 p-0"></div>', '<div class="p-0 sm:p-0"></div>'],
+  [
+    `<div class="sm:p-0
+p-0"></div>`,
+    '<div class="p-0 sm:p-0"></div>',
+  ],
+
   ['<%= tag class: "sm:p-0 p-0" %>', '<%= tag class: "p-0 sm:p-0" %>'],
   ["<%= tag class: 'sm:p-0 p-0' %>", "<%= tag class: 'p-0 sm:p-0' %>"],
-  ['<div class="sm:p-0 p-0 <%= "m-2" %>"></div>', '<div class="p-0 sm:p-0 <%= "m-2" %>"></div>'],
-  ['<%= tag class: "sm:p-0 p-0 #{"m-1"}" %>', '<%= tag class: "p-0 sm:p-0 #{"m-1"}" %>'],
   ['<%= tag class: "sm:p-0 p-0 bg-[#FFF]" %>', '<%= tag class: "bg-[#FFF] p-0 sm:p-0" %>'],
+  ['<%- tag class: "sm:p-0 p-0" -%>', '<%- tag class: "p-0 sm:p-0" -%>'],
+  ['<%= tag class: "sm:p-0 p-0", id: "x" %>', '<%= tag class: "p-0 sm:p-0", id: "x" %>'],
+  ['<%= tag class: "sm:p-0 p-0" do %>', '<%= tag class: "p-0 sm:p-0" do %>'],
+  ['<%= tag class: "sm:p-0 p-0" do |x| %>', '<%= tag class: "p-0 sm:p-0" do |x| %>'],
+  ['<%= tag class: "sm:p-0 p-0" end %>', '<%= tag class: "p-0 sm:p-0" end %>'],
+  ['<%= tag class: "sm:p-0 p-0" # note %>', '<%= tag class: "p-0 sm:p-0" # note %>'],
+  ['<%= tag(class: "sm:p-0 p-0") %>', '<%= tag(class: "p-0 sm:p-0") %>'],
+
+  // Interpolation and complex Ruby expressions stay unchanged
+  ['<%= tag class: "sm:p-0 p-0 #{"m-1"}" %>', '<%= tag class: "sm:p-0 p-0 #{"m-1"}" %>'],
+  ['<%= tag class: "sm:p-0 p-0 #{foo}" %>', '<%= tag class: "sm:p-0 p-0 #{foo}" %>'],
+  ['<%= tag class: foo ? "sm:p-0 p-0" : "m-0" %>', '<%= tag class: foo ? "sm:p-0 p-0" : "m-0" %>'],
+  ['<%= tag class: "sm:p-0 p-0" + extra %>', '<%= tag class: "sm:p-0 p-0" + extra %>'],
+  ['<%= tag class: ("sm:p-0 p-0") %>', '<%= tag class: ("sm:p-0 p-0") %>'],
+  ['<%= tag class: class_names("sm:p-0 p-0") %>', '<%= tag class: class_names("sm:p-0 p-0") %>'],
+
+  // Same-quote ERB inside HTML class values must not truncate/corrupt
+  ['<div class="sm:p-0 p-0 <%= "m-2" %>"></div>', '<div class="p-0 sm:p-0 <%= "m-2" %>"></div>'],
+  ['<div class="<%= foo ? "sm:p-0 p-0" : "m-0" %>"></div>', '<div class="<%= foo ? "sm:p-0 p-0" : "m-0" %>"></div>'],
+  ['<div class="<%= class_names("sm:p-0 p-0") %>"></div>', '<div class="<%= class_names("sm:p-0 p-0") %>"></div>'],
+  ['<div class="<%= dom_id(@user, "prefix") %>"></div>', '<div class="<%= dom_id(@user, "prefix") %>"></div>'],
+  [
+    '<div class="sm:p-0 p-0 <%= foo ? "m-2" : "m-4" %> flex inline"></div>',
+    '<div class="p-0 sm:p-0 <%= foo ? "m-2" : "m-4" %> flex inline"></div>',
+  ],
+
+  // Static segments around multiple ERB blocks sort independently
+  [
+    '<div class="sm:p-0 p-0 <%= a %> sm:m-0 m-0 <%= b %> sm:flex flex"></div>',
+    '<div class="p-0 sm:p-0 <%= a %> m-0 sm:m-0 <%= b %> flex sm:flex"></div>',
+  ],
+  ['<div class="sm:p-0   p-0 <%= x %>  flex"></div>', '<div class="p-0   sm:p-0 <%= x %>  flex"></div>'],
+  [
+    `<div class="sm:p-0
+p-0 <%= x %>"></div>`,
+    `<div class="p-0
+sm:p-0 <%= x %>"></div>`,
+  ],
+  ['<div class=\'sm:p-0 p-0 <%= "m-2" %>\'></div>', '<div class=\'p-0 sm:p-0 <%= "m-2" %>\'></div>'],
+
+  // All complete ERB forms are preserved byte-for-byte
+  ['<div class="sm:p-0 p-0 <%= x %>"></div>', '<div class="p-0 sm:p-0 <%= x %>"></div>'],
+  ['<div class="sm:p-0 p-0 <%- x %>"></div>', '<div class="p-0 sm:p-0 <%- x %>"></div>'],
+  ['<div class="sm:p-0 p-0 <% x %>"></div>', '<div class="p-0 sm:p-0 <% x %>"></div>'],
+  ['<div class="sm:p-0 p-0 <%# x %>"></div>', '<div class="p-0 sm:p-0 <%# x %>"></div>'],
+  ['<div class="sm:p-0 p-0 <%= x -%>"></div>', '<div class="p-0 sm:p-0 <%= x -%>"></div>'],
+  ['<div class="sm:p-0 p-0 <%- x -%>"></div>', '<div class="p-0 sm:p-0 <%- x -%>"></div>'],
+
+  // Partial tokens adjacent to ERB are left in place
+  ['<div class="sm:p-0 p-0 flex<%= x %>"></div>', '<div class="p-0 sm:p-0 flex<%= x %>"></div>'],
+  ['<div class="foo<%= x %>sm:p-0 p-0"></div>', '<div class="foo<%= x %>sm:p-0 p-0"></div>'],
+
+  // No cross-boundary duplicate removal
+  ['<div class="p-0 sm:p-0 <%= x %> p-0 sm:p-0"></div>', '<div class="p-0 sm:p-0 <%= x %> p-0 sm:p-0"></div>'],
+
+  // Entities and opposite quotes inside class values
+  ['<div class="sm:p-0 p-0 foo&#34;bar"></div>', '<div class="foo&#34;bar p-0 sm:p-0"></div>'],
+  [`<div class="sm:p-0 p-0 before:content-['hi']"></div>`, `<div class="p-0 before:content-['hi'] sm:p-0"></div>`],
+
+  // Negative HTML lexical contexts
+  t`<div data-class="${no}"></div>`,
+  t`<div not-class="${no}"></div>`,
+  t`<div className="${no}"></div>`,
+  t`<div :class="${no}"></div>`,
+  t`<div title="class='${no}'"></div>`,
+  t`<!-- <div class="${no}"></div> -->`,
+  t`<!DOCTYPE html class="${no}">`,
+  t`</div class="${no}">`,
+  t`<script><div class="${no}"></div></script>`,
+  t`<style><div class="${no}"></div></style>`,
+  t`<textarea><div class="${no}"></div></textarea>`,
+  t`<title><div class="${no}"></div></title>`,
+  t`<iframe><div class="${no}"></div></iframe>`,
+  t`<xmp><div class="${no}"></div></xmp>`,
+  t`<%= '<div class="${no}"></div>' %>`,
+  t`<% if true %><div class="${yes}"></div><% end %>`,
+  t`<%= tag superclass: "${no}" %>`,
+
+  // Malformed / incomplete constructs are preserved
+  ['<div class="sm:p-0 p-0>', '<div class="sm:p-0 p-0>'],
+  ['<div class="sm:p-0 p-0 <%= foo">', '<div class="sm:p-0 p-0 <%= foo">'],
+  ['<% tag class: "sm:p-0 p-0"', '<% tag class: "sm:p-0 p-0"'],
+  ['<div class="sm:p-0 p-0', '<div class="sm:p-0 p-0'],
+  ['<%# tag class: "sm:p-0 p-0" %>', '<%# tag class: "sm:p-0 p-0" %>'],
+
+  // ERB inside start tags / attribute values is opaque (no Ruby class pass)
+  [
+    '<div data-value="<%= tag class: "sm:p-0 p-0" %>"></div>',
+    '<div data-value="<%= tag class: "sm:p-0 p-0" %>"></div>',
+  ],
+  ['<div data-value=<%= tag class: "sm:p-0 p-0" %>></div>', '<div data-value=<%= tag class: "sm:p-0 p-0" %>></div>'],
+  ['<div <%= attributes(class: "sm:p-0 p-0") %>></div>', '<div <%= attributes(class: "sm:p-0 p-0") %>></div>'],
+
+  // Unsupported Ruby lexical syntax fails the whole ERB block closed
+  ['<%= /class: "sm:p-0 p-0",/ %>', '<%= /class: "sm:p-0 p-0",/ %>'],
+  ['<%= %q(class: "sm:p-0 p-0",) %>', '<%= %q(class: "sm:p-0 p-0",) %>'],
+  ['<%= `class: "sm:p-0 p-0"` %>', '<%= `class: "sm:p-0 p-0"` %>'],
+  ['<%= <<~HTML\nclass: "sm:p-0 p-0"\nHTML\n%>', '<%= <<~HTML\nclass: "sm:p-0 p-0"\nHTML\n%>'],
+  ['<%\n=begin\nclass: "sm:p-0 p-0"\n=end\n%>', '<%\n=begin\nclass: "sm:p-0 p-0"\n=end\n%>'],
+  ['<%%= tag class: "sm:p-0 p-0" %>', '<%%= tag class: "sm:p-0 p-0" %>'],
+  ['<%= "class: sm:p-0 p-0" %>', '<%= "class: sm:p-0 p-0" %>'],
+  ['<%= tag class: "sm:p-0 p-0 #@foo" %>', '<%= tag class: "sm:p-0 p-0 #@foo" %>'],
+  ['<%= tag class: "sm:p-0 p-0 #@@foo" %>', '<%= tag class: "sm:p-0 p-0 #@@foo" %>'],
+  ['<%= tag class: "sm:p-0 p-0 #$foo" %>', '<%= tag class: "sm:p-0 p-0 #$foo" %>'],
+  ['<%= tag class: "sm:p-0 p-0 \\"foo\\"" %>', '<%= tag class: "sm:p-0 p-0 \\"foo\\"" %>'],
+  ['<%= tag class: "sm:p-0\\ p-0" %>', '<%= tag class: "sm:p-0\\ p-0" %>'],
+  ['<%= tag class: "sm:p-0 p-0\\\nflex" %>', '<%= tag class: "sm:p-0 p-0\\\nflex" %>'],
+
+  // Unquoted attributes: slash is content; invalid quote/`=`/`<` fail the start tag
+  ['<img src=/assets/foo/bar class="sm:p-0 p-0">', '<img src=/assets/foo/bar class="p-0 sm:p-0">'],
+  ['<div data-url=/assets/class="sm:p-0 p-0"></div>', '<div data-url=/assets/class="sm:p-0 p-0"></div>'],
+  ['<div data=<%= x %>class="sm:p-0 p-0"></div>', '<div data=<%= x %>class="sm:p-0 p-0"></div>'],
+  ['<div class="sm:p-0 p-0><span class="m-0 p-0"></span>', '<div class="sm:p-0 p-0><span class="m-0 p-0"></span>'],
+
+  // CDATA and raw/RCDATA bodies, including /> and uppercase close
+  [
+    '<![CDATA[<div class="sm:p-0 p-0">]]><div class="sm:p-0 p-0"></div>',
+    '<![CDATA[<div class="sm:p-0 p-0">]]><div class="p-0 sm:p-0"></div>',
+  ],
+  ['<script><div class="sm:p-0 p-0"></div></SCRIPT>', '<script><div class="sm:p-0 p-0"></div></SCRIPT>'],
+  ['<script/><div class="sm:p-0 p-0"></div>', '<script/><div class="sm:p-0 p-0"></div>'],
+  ['<script><div class="sm:p-0 p-0"></div>', '<script><div class="sm:p-0 p-0"></div>'],
+  ['<plaintext><div class="sm:p-0 p-0"></div>', '<plaintext><div class="sm:p-0 p-0"></div>'],
+
+  // Representative fdb shapes
+  [
+    '<div class="attachment--<%= foo ? "sm:p-0 p-0" : "m-0" %> attachment--<%= bar ? "flex inline" : "block" %>"></div>',
+    '<div class="attachment--<%= foo ? "sm:p-0 p-0" : "m-0" %> attachment--<%= bar ? "flex inline" : "block" %>"></div>',
+  ],
+  [
+    '<div class="<%= dom_id(@user, "prefix") %> sm:p-0 p-0 sm:m-0 m-0 sm:flex flex"></div>',
+    '<div class="<%= dom_id(@user, "prefix") %> m-0 flex p-0 sm:m-0 sm:flex sm:p-0"></div>',
+  ],
+  [
+    `<div
+  class="sm:p-0 p-0 <%= foo ? "m-2" : "m-4" %>"
+>`,
+    `<div
+  class="p-0 sm:p-0 <%= foo ? "m-2" : "m-4" %>"
+>`,
+  ],
+  ['<div class="sm:p-0\r\np-0"></div>', '<div class="p-0 sm:p-0"></div>'],
 ]
 
 export let tests: Record<string, TestEntry[]> = {
